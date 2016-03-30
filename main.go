@@ -4,14 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"net/http/httputil"
-	"net/url"
 	"os"
 	"runtime"
 	"sync"
 
 	"github.com/Unknwon/goconfig"
-	"github.com/fvbock/endless"
+	//"github.com/fvbock/endless"
 )
 
 const (
@@ -73,6 +73,16 @@ func init_logger(log_path string) (*log.Logger, error) {
 	return logger, nil
 }
 
+func newMultiHostReverseProxy(hm map[string]string) *httputil.ReverseProxy {
+	director := func(r *http.Request) {
+		r.URL.Scheme = "http"
+		r.URL.Host = hm[r.Host]
+		r.URL.RawQuery = r.RequestURI
+	}
+
+	return &httputil.ReverseProxy{Director: director}
+}
+
 func main() {
 	defer defer_fn()
 	flag.Parse()
@@ -86,17 +96,17 @@ func main() {
 		handle_err(err)
 	}
 
-	default_host, err := url.Parse(conf.MustValue("", "default_host"))
-	if err != nil {
-		handle_err(err)
+	hm := make(map[string]string)
+	for _, node := range conf.GetSectionList() {
+		hm[node] = conf.MustValue(node, "host")
 	}
 
-	reverse_proxy := httputil.NewSingleHostReverseProxy(default_host)
+	reverse_proxy := newMultiHostReverseProxy(hm)
 	reverse_proxy.ErrorLog = my_logger
 
 	var exit chan error
 	go func() {
-		exit <- endless.ListenAndServe(":8030", reverse_proxy)
+		exit <- http.ListenAndServe(":80", reverse_proxy)
 	}()
 
 	e := <-exit
