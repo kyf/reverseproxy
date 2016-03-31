@@ -39,7 +39,7 @@ func (ec *ExitCaller) Add(fn func()) {
 }
 
 func init() {
-	flag.StringVar(&config_path, "config_path", "./conf.d/default.ini", "reverse proxy config file")
+	flag.StringVar(&config_path, "config_path", "/work/gopro/src/github.com/kyf/reverseproxy/conf.d/default.ini", "reverse proxy config file")
 	flag.StringVar(&log_path, "log_path", "/var/log/reverseproxy/reverseproxy.log", "reverse proxy run log file")
 	exitCaller = &ExitCaller{defer_handlers: make([]func(), 0)}
 }
