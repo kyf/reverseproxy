@@ -16,6 +16,9 @@ import (
 
 const (
 	LOG_PREFIX string = "[reverseproxy]"
+
+	CERT_FILE = "/home/kyf/cert/molu.crt"
+	KEY_FILE  = "/home/kyf/cert/molu.key"
 )
 
 var (
@@ -39,7 +42,7 @@ func (ec *ExitCaller) Add(fn func()) {
 }
 
 func init() {
-	flag.StringVar(&config_path, "config_path", "/work/gopro/src/github.com/kyf/reverseproxy/conf.d/default.ini", "reverse proxy config file")
+	flag.StringVar(&config_path, "config_path", "/etc/reverseproxy/conf.d/default.ini", "reverse proxy config file")
 	flag.StringVar(&log_path, "log_path", "/var/log/reverseproxy/reverseproxy.log", "reverse proxy run log file")
 	exitCaller = &ExitCaller{defer_handlers: make([]func(), 0)}
 }
@@ -106,7 +109,7 @@ func main() {
 
 	var exit chan error
 	go func() {
-		exit <- http.ListenAndServe(":80", reverse_proxy)
+		exit <- http.ListenAndServeTLS(":80", CERT_FILE, KEY_FILE, reverse_proxy)
 	}()
 
 	e := <-exit
