@@ -109,7 +109,7 @@ func main() {
 
 	var exit chan error
 	go func() {
-		exit <- http.ListenAndServeTLS(":80", CERT_FILE, KEY_FILE, reverse_proxy)
+		exit <- http.ListenAndServeTLS(":443", CERT_FILE, KEY_FILE, reverse_proxy)
 	}()
 
 	e := <-exit
